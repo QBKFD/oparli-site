@@ -84,38 +84,60 @@
         <div class="rows">
 
           <article class="row">
-            <h3 class="row__title">IC/IR alpha-mining engine</h3>
+            <h3 class="row__title">IC/IR Alpha-mining Engine</h3>
             <p class="row__body">
-              An open-source, headless fitness function for alpha signals. It scores
-              cross-sectional Spearman rank IC, information ratio, and signal decay on
-              Polars lazy evaluation. I validate it against planted signals, so I know the
-              metrics respond to real structure and not to my own hope.
+              Headless fitness function for ranking alpha signals by whether they actually
+              predict returns: cross-sectional rank IC, IR, and decay over thousands of
+              factors in one Polars lazy pass, validated against planted signals so the
+              score tracks real structure, not noise. Ongoing kernel work: ranking is
+              nearly the whole cost, so ranking once per date instead of per factor made it
+              ~1.9× faster on complete panels; the null-aware path is next.
             </p>
-            <p class="row__note mono">Polars · lazy evaluation · planted-signal validation</p>
+            <p class="row__note mono">Polars · NumPy · Vectorized ranking · Planted-signal validation · Thread-pinned benchmarks</p>
           </article>
 
           <article class="row">
-            <h3 class="row__title">Five hypotheses, five nulls</h3>
+            <h3 class="row__title">Four hypotheses, four nulls</h3>
             <p class="row__body">
-              I tested five XAUUSD microstructure hypotheses, session continuation,
-              price-only key levels, time-series momentum, and candle-structure scans,
-              against a sealed 2024 to 2026 window. All five returned nulls. That is the
-              result I trust most. The window was sealed, nothing was peeked at in advance,
-              and the methodology came before the answer. A clean null is worth more than a
-              backtest that was allowed to cheat.
+              I ran four pre-registered microstructure studies on gold: session continuation,
+              price levels against matched random controls, time-series momentum, and
+              liquidity sweeps. All came back null or economically negligible, and that is the
+              result I trust most. Methodology fixed before the answer, levels tested against
+              matched random controls, out-of-sample window sealed. A clean null is worth more
+              than a backtest that was allowed to cheat.
             </p>
-            <p class="row__note mono">Sealed 2024–2026 window · no peeking · methodology first</p>
+            <p class="row__note mono">Sealed 2020–2026 · Matched controls · Pre-registered · FDR-corrected</p>
           </article>
 
           <article class="row">
-            <h3 class="row__title">Survivorship-bias-free equity factor model</h3>
+            <h3 class="row__title">XAI under pressure: what rule-based models actually cost</h3>
+            <p class="row__sub mono">BSc thesis · University of Amsterdam</p>
             <p class="row__body">
-              An S&amp;P 500+ universe reconstructed from index change history, so the factor
-              model never sees a company that was not actually in the index at the time.
-              Reconstructing membership is most of the work, and the whole pipeline is
-              unit-tested end to end.
+              The starting point: RuleOpt, an optimization-based rule learning method
+              co-developed by my ML professor and published shortly before, deserved an
+              independent benchmark. I tested it alongside three other rule-based methods
+              against standard black-box baselines across eleven classification datasets.
+              On binary and low-complexity tasks, interpretable models matched the baselines
+              within one to two points, in one case beating all of them with a rule set
+              readable in a minute. On complex multiclass tasks, the gap widened past 15
+              points. Of nine published XAI methods evaluated, only four ran reliably: the
+              tooling lags the literature. Full comparison in the repo.
             </p>
-            <p class="row__note mono">Reconstructed universe · point-in-time · fully unit-tested</p>
+          </article>
+
+          <article class="row">
+            <h3 class="row__title">Earnings-call sentiment: where the signal actually lives</h3>
+            <p class="row__body">
+              FinBERT sentiment extraction across 18,755 earnings call transcripts, asking
+              which part of the call actually carries financial signal. The finding: prepared
+              remarks hold measurably stronger sentiment than the Q&amp;A sections, which skew
+              neutral, suggesting the scripted part of the call is where management commits to
+              a tone and the spontaneous part hedges. A practical engineering result along the
+              way: removing stop-words made processing three times faster but weakened the
+              sentiment signal, a trade-off worth knowing before preprocessing financial text.
+              Full methodology and the stock-impact extension in the repo.
+            </p>
+            <p class="row__note mono">FinBERT · NLP · TF-IDF · NER · LDA</p>
           </article>
 
         </div>
@@ -154,6 +176,7 @@
   <!-- ============ FOOTER ============ -->
   <footer class="footer">
     <div class="wrap footer__inner mono">
+      <span>Site is under development. Purpose is to have interactive access to each result directly.</span>
       <span class="footer__copy">© 2026</span>
     </div>
   </footer>
