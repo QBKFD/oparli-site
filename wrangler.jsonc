@@ -1,0 +1,9 @@
+{
+  // Static-asset-only Worker: serves the files in this repo, no server code.
+  "name": "oparli-site",
+  "compatibility_date": "2025-01-01",
+  "assets": {
+    "directory": ".",
+    "not_found_handling": "single-page-application"
+  }
+}
