@@ -387,6 +387,7 @@ button:focus-visible {
 .about__text { max-width: 62ch; }
 .about__text p { margin: 0 0 20px; }
 .about__text p:last-child { margin-bottom: 0; }
+.about__note { color: var(--text-dim); font-size: 0.95rem; }
 .about__photo {
   width: 180px;
   height: 180px;
