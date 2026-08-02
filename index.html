@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jakub Waszczak · OPARLI</title>
+  <meta name="description" content="Quantitative research and trading systems by Jakub Waszczak. Structure, found in noise." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="#top" class="nav__name">OPARLI</a>
+      <nav class="nav__links" aria-label="Primary">
+        <a href="#projects">Projects</a>
+        <span class="nav__sep" aria-hidden="true">·</span>
+        <a href="#research">Research</a>
+        <span class="nav__sep" aria-hidden="true">·</span>
+        <a href="#about">About</a>
+        <span class="nav__sep" aria-hidden="true">·</span>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- ============ 1. HERO ============ -->
+    <section class="hero" id="hero">
+      <div class="hero__stage" id="hero-stage">
+        <canvas class="hero__canvas" id="hero-canvas" aria-hidden="true"></canvas>
+        <div class="hero__veil" aria-hidden="true"></div>
+        <div class="hero__content">
+          <p class="hero__brand">OPARLI.</p>
+          <p class="hero__lead">A corner for everything I build, test,&nbsp;and&nbsp;break.</p>
+          <p class="hero__attr mono">Jakub Waszczak · Data Analyst, R&amp;D</p>
+        </div>
+        <div class="hero__scroll-wrap">
+          <a href="#projects" class="hero__scroll" aria-label="Scroll to content">
+            <span class="hero__scroll-line" aria-hidden="true"></span>
+            <span class="hero__scroll-label mono">scroll</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 2. SYSTEMS ============ -->
+    <section class="section" id="projects">
+      <div class="wrap">
+        <p class="eyebrow eyebrow--accent">Projects</p>
+        <h2 class="section__title">Software I run.</h2>
+
+        <div class="cards">
+
+          <article class="card">
+            <h3 class="card__title">OPARLI trading system</h3>
+            <p class="card__body">
+              A multi-agent, LLM-assisted system trading XAUUSD. A three-agent pipeline
+              runs on fixed UTC scan times, persists everything to PostgreSQL, and reports
+              through a Vue dashboard wired to IBKR. Underneath it, a two-layer learning
+              architecture lets the system revise its own approach over time.
+            </p>
+            <p class="card__status mono">
+              <span class="dot" aria-hidden="true">●</span> last session replay available
+              <a href="#" class="card__inline-link">View replay →</a>
+            </p>
+            <p class="card__tech mono">Python · Polars · PostgreSQL · Vue · IBKR</p>
+            <a href="#" class="link">Read the write-up →</a>
+          </article>
+
+          <article class="card">
+            <h3 class="card__title">C++ funding-rate arbitrage engine</h3>
+            <p class="card__body">
+              A low-latency engine that polls exchange REST and WebSocket feeds to track
+              funding-rate dislocations. I built it as a systems-engineering deep dive:
+              networking, concurrency, and exchange microstructure, written close to the
+              metal.
+            </p>
+            <p class="card__tech mono">C++ · WebSocket · REST · lock-free concurrency</p>
+            <a href="#" class="link">Read the write-up →</a>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 3. RESEARCH ============ -->
+    <section class="section" id="research">
+      <div class="wrap">
+        <p class="eyebrow eyebrow--accent">Research</p>
+        <h2 class="section__title">Studies and methodology.</h2>
+
+        <div class="rows">
+
+          <article class="row">
+            <h3 class="row__title">IC/IR alpha-mining engine</h3>
+            <p class="row__body">
+              An open-source, headless fitness function for alpha signals. It scores
+              cross-sectional Spearman rank IC, information ratio, and signal decay on
+              Polars lazy evaluation. I validate it against planted signals, so I know the
+              metrics respond to real structure and not to my own hope.
+            </p>
+            <p class="row__note mono">Polars · lazy evaluation · planted-signal validation</p>
+          </article>
+
+          <article class="row">
+            <h3 class="row__title">Five hypotheses, five nulls</h3>
+            <p class="row__body">
+              I tested five XAUUSD microstructure hypotheses, session continuation,
+              price-only key levels, time-series momentum, and candle-structure scans,
+              against a sealed 2024 to 2026 window. All five returned nulls. That is the
+              result I trust most. The window was sealed, nothing was peeked at in advance,
+              and the methodology came before the answer. A clean null is worth more than a
+              backtest that was allowed to cheat.
+            </p>
+            <p class="row__note mono">Sealed 2024–2026 window · no peeking · methodology first</p>
+          </article>
+
+          <article class="row">
+            <h3 class="row__title">Survivorship-bias-free equity factor model</h3>
+            <p class="row__body">
+              An S&amp;P 500+ universe reconstructed from index change history, so the factor
+              model never sees a company that was not actually in the index at the time.
+              Reconstructing membership is most of the work, and the whole pipeline is
+              unit-tested end to end.
+            </p>
+            <p class="row__note mono">Reconstructed universe · point-in-time · fully unit-tested</p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 4. ABOUT ============ -->
+    <section class="section" id="about">
+      <div class="wrap">
+        <p class="eyebrow eyebrow--accent">About</p>
+        <div class="about">
+          <div class="about__text">
+            <p>
+              I started in graphic design school, moved into analytics and data science
+              (an MSc in Data Science and Business Analytics), and spent time in model
+              validation and risk at a bank. These days I build trading systems and study
+              markets, and I work as a Data Analyst III. The design training is quietly
+              why this site looks the way it does.
+            </p>
+            <p>
+              What I actually enjoy is the engineering underneath the finance. Making things
+              fast, keeping the statistics honest, and finding structure in data that mostly
+              looks like noise.
+            </p>
+            <p>
+              Away from the screen I produce music and snowboard.
+            </p>
+          </div>
+          <div class="about__mark" aria-hidden="true">
+            <span>JW</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 5. CONTACT ============ -->
+    <section class="section" id="contact">
+      <div class="wrap">
+        <p class="eyebrow eyebrow--accent">Contact</p>
+        <h2 class="section__title">The fastest way to reach me is email.</h2>
+        <p class="contact__links">
+          <a href="mailto:jakubwaszczakk@gmail.com" class="link">jakubwaszczakk@gmail.com</a>
+          <a href="#" class="link">GitHub</a>
+          <a href="#" class="link">LinkedIn</a>
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="wrap footer__inner mono">
+      <span>Designed and built by hand. No template, no framework. Canvas animation: vanilla JS, zero dependencies.</span>
+      <span class="footer__copy">© 2026</span>
+    </div>
+  </footer>
+
+  <script src="js/hero.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>
