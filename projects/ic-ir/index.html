@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IC/IR Alpha-mining Engine · OPARLI</title>
+  <meta name="description" content="How the IC/IR alpha-mining engine works: from idea to validation to a ranking kernel made ~1.9x faster." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="stylesheet" href="../../css/case.css" />
+</head>
+<body>
+
+  <!-- nav: on case pages the wordmark is always shown -->
+  <header class="nav is-scrolled" id="nav">
+    <div class="nav__inner">
+      <a href="../../index.html" class="nav__name">OPARLI</a>
+      <nav class="nav__links" aria-label="Primary">
+        <a href="../../index.html#projects">Projects</a>
+        <span class="nav__sep" aria-hidden="true">·</span>
+        <a href="../../index.html#research">Research</a>
+        <span class="nav__sep" aria-hidden="true">·</span>
+        <a href="../../index.html#about">About</a>
+        <span class="nav__sep" aria-hidden="true">·</span>
+        <a href="../../index.html#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="case">
+    <a href="../../index.html#research" class="case__back">← Back to research</a>
+
+    <header class="case__head">
+      <p class="eyebrow eyebrow--accent">Research</p>
+      <h1 class="case__title">IC/IR Alpha-mining Engine</h1>
+      <p class="case__standfirst">
+        An alpha-mining engine built data-first: a survivorship-free S&amp;P 500 universe,
+        honest cross-sectional scoring, then a ranking kernel I made about 1.9 times faster.
+      </p>
+      <p class="case__meta mono">
+        Polars · NumPy · Point-in-time universe · Planted-signal validation · Thread-pinned benchmarks
+        &nbsp;·&nbsp; <a href="#">Repo →</a>
+      </p>
+    </header>
+
+    <ol class="path">
+
+      <li class="stage" id="idea">
+        <span class="stage__node" aria-hidden="true"></span>
+        <p class="stage__label">01 · Idea</p>
+        <h2 class="stage__title">Start from the engine, not the asset</h2>
+        <p class="stage__body">
+          I started by researching how alpha-mining engines are actually built, and whether
+          one engine could generalise across assets instead of being hand-tuned to a single
+          market. The conclusion that shaped everything after it was simple: an engine is
+          only as honest as the data you feed it, so the data had to come first.
+        </p>
+      </li>
+
+      <li class="stage" id="survivorship">
+        <span class="stage__node" aria-hidden="true"></span>
+        <p class="stage__label">02 · Survivorship bias</p>
+        <h2 class="stage__title">The first place a backtest cheats is the universe</h2>
+        <p class="stage__body">
+          Before any signal, I looked at what data I was even allowed to use. Most equity
+          datasets quietly contain only the companies that survived. Test on those and every
+          strategy looks better than it really was, because the failures have been deleted.
+          To trust anything downstream, I needed a universe that still remembers the
+          companies that left.
+        </p>
+
+        <div class="sviz" id="sviz" role="group" aria-label="Interactive: the survivorship split of the S&amp;P 500 universe">
+          <canvas class="sviz__canvas" aria-hidden="true"></canvas>
+          <div class="sviz__legend">
+            <span><span class="sviz__dot sviz__dot--keep" aria-hidden="true"></span><b id="sviz-k">0</b>&nbsp;in the index today</span>
+            <span id="sviz-left-legend"><span class="sviz__dot sviz__dot--left" aria-hidden="true"></span><b id="sviz-l">0</b>&nbsp;delisted or removed</span>
+          </div>
+          <div class="sviz__controls">
+            <button class="sviz__toggle" type="button" aria-pressed="false">Showing: full universe</button>
+            <div class="sviz__measure">
+              <div class="sviz__measure-label">
+                <span>Measured backtest return (illustrative)</span>
+                <span class="sviz__measure-val"><b id="sviz-val">6.5%</b></span>
+              </div>
+              <div class="sviz__track"><span class="sviz__fill" id="sviz-fill"></span></div>
+            </div>
+          </div>
+          <p class="sviz__note" id="sviz-note">The full universe includes the companies that failed. This is the honest measurement.</p>
+        </div>
+      </li>
+
+      <li class="stage" id="universe">
+        <span class="stage__node" aria-hidden="true"></span>
+        <p class="stage__label">03 · Reconstructing the universe</p>
+        <h2 class="stage__title">Rebuild membership by walking the change log backward</h2>
+        <p class="stage__body">
+          I took today's S&amp;P 500 as ground truth and walked the full membership change
+          log backward, undoing each addition and removal to reconstruct who was actually in
+          the index at every month-end. That means fetching the delisted and removed names
+          too, not just the survivors. The result is point-in-time and deterministic, covered
+          by 12 unit tests, and I only score from 2007 onward, where the change log gets
+          dense enough to trust.
+        </p>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="stat__num"><span data-countup="503" data-decimals="0">0</span></div>
+            <div class="stat__label">in the index today</div>
+          </div>
+          <div class="stat">
+            <div class="stat__num"><span data-countup="845" data-decimals="0">0</span></div>
+            <div class="stat__label">distinct names since 2005</div>
+          </div>
+          <div class="stat">
+            <div class="stat__num"><span data-countup="342" data-decimals="0">0</span></div>
+            <div class="stat__label">since delisted or removed</div>
+          </div>
+          <div class="stat">
+            <div class="stat__num"><span data-countup="258" data-decimals="0">0</span></div>
+            <div class="stat__label">monthly snapshots, 2005 to 2026</div>
+          </div>
+        </div>
+        <p class="stat__caption">
+          Those 342 names that left are exactly what a survivorship-biased dataset would
+          silently drop.
+        </p>
+      </li>
+
+      <li class="stage" id="scoring">
+        <span class="stage__node" aria-hidden="true"></span>
+        <p class="stage__label">04 · Scoring</p>
+        <h2 class="stage__title">Rank IC, IR, and decay in one lazy pass</h2>
+        <p class="stage__body">
+          On that universe, the engine scores each candidate signal by cross-sectional
+          Spearman rank IC, information ratio, and decay, all in a single Polars lazy pass
+          rather than a Python loop per factor. I validate the scorer itself against planted
+          signals first, so I know the metrics track real structure and not my own hope.
+        </p>
+
+        <div class="rviz" id="rviz" role="group" aria-label="Interactive: how rank IC scores a signal">
+          <div class="rviz__heads"><span>ranked by signal</span><span>ranked by next-month return</span></div>
+          <canvas class="rviz__canvas" aria-hidden="true"></canvas>
+          <div class="rviz__controls">
+            <span class="rviz__ic">rank IC<b id="rviz-ic">0.00</b></span>
+            <label class="rviz__slider">noise
+              <input type="range" id="rviz-strength" min="0" max="100" value="72" aria-label="Signal strength, from noise to signal" />
+              signal
+            </label>
+            <button class="rviz__btn" type="button" id="rviz-new">New draw</button>
+          </div>
+          <p class="rviz__note">
+            Left is the signal's order; right is what actually happened next. IC is just how
+            much the two agree. Slide from noise to signal and watch the lines straighten.
+          </p>
+        </div>
+      </li>
+
+      <li class="stage" id="optimization">
+        <span class="stage__node" aria-hidden="true"></span>
+        <p class="stage__label">05 · Making it fast</p>
+        <h2 class="stage__title">Rank once per date, not once per factor</h2>
+        <p class="stage__body">
+          Spearman rank IC is just Pearson correlation on ranks, and the ranking is a sort
+          that turns out to be almost the entire cost: about 989 ms of a pass where the
+          correlation itself is only 18 ms. The baseline, Polars' built-in per-factor
+          Spearman, re-ranks the returns again for every factor, so a thousand factors means
+          sorting the same returns a thousand redundant times.
+        </p>
+        <p class="stage__body">
+          Instead I rank each column once per date, the returns once and each factor once,
+          then score with a cheap Pearson on the ranks I already have. Against that baseline
+          it is about 1.9 times faster over a thousand factors, 23.4 down to 12.1 seconds
+          single-threaded, and it holds on 8 cores too. It is exact only when every factor
+          shares the same valid rows, so the null-aware version is what I am building next.
+        </p>
+
+        <div class="bench" aria-label="Benchmark: ranking once per date versus once per factor">
+          <p class="bench__headline">
+            <span class="bench__num" data-countup="1.9" data-decimals="1">0.0</span>× faster
+            over 1000 factors
+          </p>
+          <div class="bench__row">
+            <span>Per factor</span>
+            <span class="bench__track"><span class="bench__fill" data-width="100%"></span></span>
+            <span>23.4s</span>
+          </div>
+          <div class="bench__row">
+            <span>Per date</span>
+            <span class="bench__track"><span class="bench__fill bench__fill--accent" data-width="52%"></span></span>
+            <span>12.1s</span>
+          </div>
+        </div>
+        <p class="stat__caption">
+          Baseline is Polars' built-in per-factor Spearman. Both timed over 1000 factors,
+          single-threaded.
+        </p>
+      </li>
+
+    </ol>
+  </main>
+
+  <script src="../../js/case.js" defer></script>
+  <script src="../../js/scene-survivorship.js" defer></script>
+  <script src="../../js/scene-ranking.js" defer></script>
+</body>
+</html>
