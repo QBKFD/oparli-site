@@ -60,7 +60,7 @@
   }
 
   // ---- animated state ----
-  var introP = 0, introStart = 0;      // survivors fly-in
+  var introP = 0, introStart = 0, revealed = false;   // survivors fly-in (starts on scroll-in)
   var appearP = 0, appearTarget = 0;   // failures bloom (0 = hidden, 1 = full ring)
   function smoothstep(x) { return x * x * (3 - 2 * x); }
 
@@ -98,7 +98,7 @@
   var running = false, raf = 0, lastTs = 0;
   function step(dt) {
     var active = false;
-    if (introP < 1) { introP = Math.min(1, (performance.now() - introStart) / 1300); active = true; }
+    if (revealed && introP < 1) { introP = Math.min(1, (performance.now() - introStart) / 1300); active = true; }
     if (Math.abs(appearP - appearTarget) > 0.002) {
       appearP += (appearTarget - appearP) * (1 - Math.exp(-dt / 0.16));
       active = true;
@@ -145,13 +145,13 @@
   });
 
   if (reduce) {
-    introP = 1; updateCounts(); draw();
+    introP = 1; revealed = true; updateCounts(); draw();
   } else if ("IntersectionObserver" in window) {
     var io = new IntersectionObserver(function (entries) {
-      if (entries[0].isIntersecting) { introStart = performance.now(); kick(); io.disconnect(); }
-    }, { threshold: 0.35 });
+      if (entries[0].isIntersecting) { revealed = true; introStart = performance.now(); kick(); io.disconnect(); }
+    }, { threshold: 0.3 });
     io.observe(root);
   } else {
-    introStart = performance.now(); kick();
+    revealed = true; introStart = performance.now(); kick();
   }
 })();
