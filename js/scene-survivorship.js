@@ -1,7 +1,8 @@
 // scene-survivorship.js: interactive canvas for the IC/IR survivorship stage.
-// 845 dots split into 503 survivors + 342 that left the index; a toggle fades
-// the failures out and inflates an illustrative "measured return" bar to show
-// how survivorship bias flatters a backtest. Vanilla, DPR-aware, reduced-motion.
+// One centered disc. The 503 survivors form the inner core; pressing the toggle
+// blooms the 342 companies that left outward as a ring, so the circle visibly
+// grows (more dots) and an illustrative "measured return" bar drops from its
+// inflated survivors-only value to the honest full-universe value.
 
 (function () {
   "use strict";
@@ -12,7 +13,7 @@
   var g = cv.getContext("2d");
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  var KEEP = 503, LEFT = 342;          // real counts (from the reconstructed universe)
+  var KEEP = 503, LEFT = 342;          // survivors (inner) and companies that left (outer)
   var kEl = document.getElementById("sviz-k");
   var lEl = document.getElementById("sviz-l");
   var leftLegend = document.getElementById("sviz-left-legend");
@@ -21,15 +22,15 @@
   var valEl = document.getElementById("sviz-val");
   var noteEl = document.getElementById("sviz-note");
 
-  // illustrative backtest numbers for the two modes
-  var FULL = { val: "6.5%", width: "46%", note: "The full universe includes the companies that failed. This is the honest measurement." };
-  var SURV = { val: "10.4%", width: "74%", note: "Survivors only: the same backtest looks far better, because the companies you deleted were the losers." };
+  // survivors-only (default) is the flattering, biased view; full is honest
+  var SURV = { val: "10.4%", width: "74%", note: "This is the dataset most people use: only the survivors. The backtest looks great, and that is exactly the problem." };
+  var FULL = { val: "6.5%", width: "46%", note: "Add back the companies that left and the circle grows. The same backtest drops to its honest number." };
 
-  // ---- dot field ----
+  // ---- dot field: group 0 = survivors (inner), group 1 = left (outer ring) ----
   var W = 0, H = 0, dpr = 1;
   var dots = [];
   function buildDots() {
-    var thin = cv.offsetWidth < 560 ? 0.5 : 1;  // fewer dots on phones (perf)
+    var thin = cv.offsetWidth < 560 ? 0.5 : 1;
     var nk = Math.round(KEEP * thin), nl = Math.round(LEFT * thin);
     dots = [];
     var i;
@@ -43,64 +44,65 @@
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    var cxK = W * 0.30, cxL = W * 0.72, cy = H * 0.5;
-    var Rk = Math.min(W * 0.25, H * 0.46);
-    var Rl = Rk * Math.sqrt(LEFT / KEEP);      // area proportional to count
-    var nk = 0, nl = 0;
-    dots.forEach(function (d) { d.group === 0 ? nk++ : nl++; });
-    var ck = Rk / Math.sqrt(nk || 1), cl = Rl / Math.sqrt(nl || 1);
+    var cx = W * 0.5, cy = H * 0.5;
+    var Rfull = Math.min(W * 0.46, H * 0.46);
+    var c = Rfull / Math.sqrt(dots.length || 1);   // full disc holds every dot
     var gold = Math.PI * (3 - Math.sqrt(5));
-    var ki = 0, li = 0;
-    dots.forEach(function (d) {
-      var idx, rr, a;
-      if (d.group === 0) { idx = ki++; rr = ck * Math.sqrt(idx + 0.5); a = idx * gold; d.tx = cxK + rr * Math.cos(a); d.ty = cy + rr * Math.sin(a); d.r = 1.7; }
-      else { idx = li++; rr = cl * Math.sqrt(idx + 0.5); a = idx * gold; d.tx = cxL + rr * Math.cos(a); d.ty = cy + rr * Math.sin(a); d.r = 1.5; }
+    dots.forEach(function (d, i) {                  // single phyllotaxis, inner->outer
+      var rr = c * Math.sqrt(i + 0.5), a = i * gold;
+      d.tx = cx + rr * Math.cos(a);
+      d.ty = cy + rr * Math.sin(a);
+      d.r = d.group === 0 ? 1.7 : 1.5;
+      d.cx = cx; d.cy = cy;
       if (d.sx === undefined) { d.sx = Math.random() * W; d.sy = Math.random() * H; }
-      if (introP >= 1) { d.x = d.tx; d.y = d.ty; }
+      if (introP >= 1 && d.group === 0) { d.x = d.tx; d.y = d.ty; }
     });
   }
 
   // ---- animated state ----
-  var introP = 0, introStart = 0;
-  var leftA = 0.55, leftTarget = 0.55;   // failure-group opacity
+  var introP = 0, introStart = 0;      // survivors fly-in
+  var appearP = 0, appearTarget = 0;   // failures bloom (0 = hidden, 1 = full ring)
   function smoothstep(x) { return x * x * (3 - 2 * x); }
 
   function draw() {
     g.clearRect(0, 0, W, H);
     var fin = smoothstep(introP);
-    // two passes so fillStyle/alpha are set once per group
-    drawGroup(0, "rgba(226,186,74,1)", 0.92 * fin, fin);
-    drawGroup(1, "rgba(168,172,182,1)", leftA * fin, fin);
+    // survivors: fly in from scattered start
+    g.globalAlpha = 0.92 * fin;
+    g.fillStyle = "rgba(226,186,74,1)";
+    drawGroup(0, function (d) { return [d.sx + (d.tx - d.sx) * fin, d.sy + (d.ty - d.sy) * fin]; });
+    // failures: bloom outward from the centre as the ring appears
+    var ap = smoothstep(appearP);
+    if (ap > 0.003) {
+      g.globalAlpha = 0.5 * ap;
+      g.fillStyle = "rgba(168,172,182,1)";
+      drawGroup(1, function (d) { return [d.cx + (d.tx - d.cx) * ap, d.cy + (d.ty - d.cy) * ap]; });
+    }
     g.globalAlpha = 1;
   }
-  function drawGroup(group, color, alpha, fin) {
-    if (alpha <= 0.003) return;
-    g.globalAlpha = alpha;
-    g.fillStyle = color;
+  function drawGroup(group, posFn) {
     for (var i = 0; i < dots.length; i++) {
       var d = dots[i];
       if (d.group !== group) continue;
-      var x = d.sx + (d.tx - d.sx) * fin;
-      var y = d.sy + (d.ty - d.sy) * fin;
-      g.beginPath(); g.arc(x, y, d.r, 0, 6.2832); g.fill();
+      var p = posFn(d);
+      g.beginPath(); g.arc(p[0], p[1], d.r, 0, 6.2832); g.fill();
     }
   }
 
   function updateCounts() {
-    var e = smoothstep(introP);
-    if (kEl) kEl.textContent = Math.round(KEEP * e);
-    if (lEl) lEl.textContent = Math.round(LEFT * e);
+    if (kEl) kEl.textContent = Math.round(KEEP * smoothstep(introP));
+    if (lEl) lEl.textContent = Math.round(LEFT * smoothstep(introP));
   }
 
-  // ---- loop (runs only while something is animating) ----
+  // ---- loop (runs only while animating) ----
   var running = false, raf = 0, lastTs = 0;
   function step(dt) {
     var active = false;
     if (introP < 1) { introP = Math.min(1, (performance.now() - introStart) / 1300); active = true; }
-    if (Math.abs(leftA - leftTarget) > 0.002) {
-      leftA += (leftTarget - leftA) * (1 - Math.exp(-dt / 0.14));
+    if (Math.abs(appearP - appearTarget) > 0.002) {
+      appearP += (appearTarget - appearP) * (1 - Math.exp(-dt / 0.16));
       active = true;
-    } else { leftA = leftTarget; }
+    } else { appearP = appearTarget; }
     updateCounts();
     return active;
   }
@@ -113,28 +115,28 @@
     if (active) raf = requestAnimationFrame(loop); else running = false;
   }
   function kick() {
-    if (reduce) { introP = 1; leftA = leftTarget; updateCounts(); layout(); draw(); return; }
+    if (reduce) { introP = 1; appearP = appearTarget; updateCounts(); layout(); draw(); return; }
     if (!running) { running = true; lastTs = 0; raf = requestAnimationFrame(loop); }
   }
 
   // ---- toggle ----
-  var survivors = false;
+  var full = false;
   function applyMode() {
-    var m = survivors ? SURV : FULL;
-    leftTarget = survivors ? 0.06 : 0.55;
-    if (btn) { btn.setAttribute("aria-pressed", survivors ? "true" : "false"); btn.textContent = "Showing: " + (survivors ? "survivors only" : "full universe"); }
-    if (leftLegend) leftLegend.classList.toggle("is-dropped", survivors);
-    if (fill) { fill.style.width = m.width; fill.classList.toggle("sviz__fill--accent", survivors); }
+    var m = full ? FULL : SURV;
+    appearTarget = full ? 1 : 0;
+    if (btn) { btn.setAttribute("aria-pressed", full ? "true" : "false"); btn.textContent = "Showing: " + (full ? "full universe" : "survivors only"); }
+    if (leftLegend) leftLegend.classList.toggle("is-dropped", !full);
+    if (fill) { fill.style.width = m.width; fill.classList.toggle("sviz__fill--accent", !full); }
     if (valEl) valEl.textContent = m.val;
     if (noteEl) noteEl.textContent = m.note;
     kick();
   }
-  if (btn) btn.addEventListener("click", function () { survivors = !survivors; applyMode(); });
+  if (btn) btn.addEventListener("click", function () { full = !full; applyMode(); });
 
   // ---- init ----
   buildDots();
   layout();
-  applyMode();               // sets the full-universe baseline (bar + note)
+  applyMode();               // survivors-only baseline
 
   var resizeRaf = 0;
   window.addEventListener("resize", function () {
@@ -142,7 +144,6 @@
     resizeRaf = requestAnimationFrame(function () { resizeRaf = 0; buildDots(); layout(); draw(); });
   });
 
-  // reveal: run the split once the widget scrolls into view
   if (reduce) {
     introP = 1; updateCounts(); draw();
   } else if ("IntersectionObserver" in window) {
