@@ -15,12 +15,14 @@
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var noHover = window.matchMedia("(hover: none)").matches;
 
-  // ---- sizing (DPR-aware, capped at 1.5; W/H are CSS pixels) ----
+  // ---- sizing (DPR-aware; W/H are CSS pixels) ----
+  // Cap DPR lower on phones: pixel work scales with dpr^2, so 1.0 vs 1.5 is a
+  // ~2.25x saving that keeps the frame rate up on mobile GPUs.
   var W = 0, H = 0, dpr = 1;
   function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     W = stage.offsetWidth;
     H = stage.offsetHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, W < 640 ? 1 : 1.5);
     cv.width = Math.round(W * dpr);
     cv.height = Math.round(H * dpr);
     cv.style.width = W + "px";
@@ -30,11 +32,14 @@
   resize();
   window.addEventListener("resize", resize);
 
-  // ---- contour count: fewer on small screens ----
+  // ---- detail: fewer contours and segments on small screens ----
   function contourCount() {
     return W < 640 ? 48 : 74;
   }
-  var SEG = 110;
+  function segCount() {
+    return W < 640 ? 72 : 110;
+  }
+  var grainTick = 0;
 
   // ---- film-grain tile (built once) ----
   var gr = document.createElement("canvas");
@@ -137,6 +142,7 @@
   // ---- one drawing pass (renders at current t / e) ----
   function draw() {
     var NC = contourCount();
+    var SEG = segCount();
     g.fillStyle = "#0b0b0d";
     g.fillRect(0, 0, W, H);
 
@@ -230,15 +236,19 @@
       }
     }
 
-    // film-grain overlay
-    if (!pat) pat = g.createPattern(gr, "repeat");
-    g.save();
-    g.globalAlpha = 0.045;
-    g.globalCompositeOperation = "overlay";
-    g.translate((Math.random() * 140) | 0, (Math.random() * 140) | 0);
-    g.fillStyle = pat;
-    g.fillRect(-140, -140, W + 280, H + 280);
-    g.restore();
+    // film-grain overlay (expensive full-canvas blend). On phones run it every
+    // other frame to halve the cost; the shimmer still reads fine.
+    grainTick++;
+    if (W >= 640 || (grainTick & 1)) {
+      if (!pat) pat = g.createPattern(gr, "repeat");
+      g.save();
+      g.globalAlpha = 0.045;
+      g.globalCompositeOperation = "overlay";
+      g.translate((Math.random() * 140) | 0, (Math.random() * 140) | 0);
+      g.fillStyle = pat;
+      g.fillRect(-140, -140, W + 280, H + 280);
+      g.restore();
+    }
   }
 
   // ---- hero text coupling (fade + lift on scroll) ----
@@ -249,30 +259,39 @@
   }
 
   // ---- animation loop with guards ----
-  var running = false, rafId = 0, visible = true;
+  var running = false, rafId = 0, visible = true, lastTs = 0;
 
-  function frame() {
+  function frame(ts) {
     if (!running) return;
-    // ease scroll coupling toward target
-    e += (eTarget - e) * 0.1;
 
-    t += 0.016 * (1 + e * 1.6);
-    vx += (mx - sx) * 0.045; vy += (my - sy) * 0.045;
-    vx *= 0.88; vy *= 0.88; sx += vx; sy += vy;
-    str += ((inside ? 1 : 0) - str) * 0.04;
-    gustT -= 0.016;
+    // Frame-rate-independent time: normalize elapsed time to 60fps "frames"
+    // so the animation runs at the same real speed at 30fps or 120fps.
+    if (!lastTs) lastTs = ts;
+    var f = (ts - lastTs) / 16.6667;
+    lastTs = ts;
+    if (f > 3) f = 3; else if (f < 0.1) f = 0.1;   // clamp stalls / first frame
+
+    // ease scroll coupling toward target
+    e += (eTarget - e) * Math.min(1, 0.1 * f);
+
+    t += 0.016 * f * (1 + e * 1.6);
+    vx += (mx - sx) * 0.045 * f; vy += (my - sy) * 0.045 * f;
+    var damp = Math.pow(0.88, f);
+    vx *= damp; vy *= damp; sx += vx * f; sy += vy * f;
+    str += ((inside ? 1 : 0) - str) * Math.min(1, 0.04 * f);
+    gustT -= 0.016 * f;
     if (gustT <= 0 && !gustOn) { gustOn = 1; gustR = 0; }
-    if (gustOn) { gustR += 0.010; if (gustR > 2.0) { gustOn = 0; gustT = 80 + Math.random() * 100; } }
+    if (gustOn) { gustR += 0.010 * f; if (gustR > 2.0) { gustOn = 0; gustT = 80 + Math.random() * 100; } }
 
     // rare event: brighten a near-void ring, send a point around it, fade back
-    rareClock += 0.016;
+    rareClock += 0.016 * f;
     if (!rareOn && rareClock >= rareNext) {
       rareOn = true; rareElapsed = 0;
       var kTarget = 0.05 + Math.random() * 0.10;          // k in [0.05, 0.15]
       rareIndex = Math.round(kTarget * (contourCount() - 1));
     }
     if (rareOn) {
-      rareElapsed += 0.016;
+      rareElapsed += 0.016 * f;
       if (rareElapsed < 2) rareIntensity = smoothstep(rareElapsed / 2);          // 2s brighten
       else if (rareElapsed < 6) rareIntensity = 1;                               // 4s hold
       else if (rareElapsed < 8) rareIntensity = smoothstep(1 - (rareElapsed - 6) / 2); // 2s fade
@@ -294,6 +313,7 @@
   function start() {
     if (running || reduceMotion || !visible) return;
     running = true;
+    lastTs = 0;                       // re-baseline dt so no jump after a pause
     rafId = requestAnimationFrame(frame);
   }
   function stop() {

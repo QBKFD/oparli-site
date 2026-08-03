@@ -40,6 +40,7 @@ body {
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;              /* guard: page never scrolls sideways */
 }
 img { max-width: 100%; display: block; }
 
@@ -158,7 +159,8 @@ button:focus-visible {
 .hero {
   position: relative;
   height: 100vh;
-  min-height: 560px;
+  height: 100svh;          /* avoids toolbar-driven jump/clip on mobile */
+  min-height: 520px;
 }
 .hero__stage {
   position: absolute;
@@ -448,9 +450,12 @@ button:focus-visible {
   .hero__sub { max-width: 24ch; }
 }
 
-@media (max-width: 400px) {
-  .nav__inner { flex-direction: column; gap: 4px; justify-content: center; }
+/* Phones: stack the nav (wordmark over links) so nothing crowds or overflows */
+@media (max-width: 560px) {
   .nav { height: auto; padding-block: 10px; }
+  .nav__inner { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .nav__links { flex-wrap: wrap; }
+  .section { scroll-margin-top: 88px; }   /* taller stacked nav clears headings */
 }
 
 /* ============================================================
