@@ -167,16 +167,42 @@
         <h2 class="stage__title">Two layers of learning, and a human in the loop</h2>
         <p class="stage__body">
           The meta-agent runs in four modes. Before a trade it coordinates the vote, mid-trade
-          it manages the position, after a trade it updates each analyst's weight from realised
-          performance, and once a month it does something bigger.
+          it manages the position, after a trade it nudges each analyst's weight up or down from
+          realised performance, and once a month it does something bigger: it reads a breakdown
+          of where an agent has been failing and proposes a change to that agent's own
+          instructions, add, modify, or remove. Nothing deploys automatically. Every proposal
+          waits for my approval.
         </p>
         <p class="stage__body">
-          In that monthly evolution pass it proposes symbolic changes to its own agents'
-          instructions, add, modify, or remove, and attaches statistical evidence to each:
-          sample size, a p-value, and the win-rate before versus after a backtest. Nothing
-          deploys automatically. Every proposal waits for my approval. The system can suggest
-          how to improve itself, but it cannot silently rewrite its own rules.
+          The hard part is not proposing changes, it is knowing when one is even warranted. A
+          run of losses can mean an agent's reasoning is genuinely broken, or that the market
+          regime turned, or nothing beyond variance. Today the system guards against
+          overreacting with a minimum-sample floor before evolution can trigger, and by
+          splitting performance per market regime so a regime shift is not mistaken for a broken
+          agent. Where it is going is stricter: a significance gate that tests the recent window
+          against a bootstrapped no-change baseline, and canary cases the agent must keep getting
+          right, so a proposal only survives if the degradation is real and the fix does not
+          break what already worked.
         </p>
+
+        <div class="dviz" id="dviz" role="group" aria-label="Interactive: telling a genuine degradation from noise">
+          <canvas class="dviz__canvas" aria-hidden="true"></canvas>
+          <div class="dviz__controls">
+            <div class="dviz__seg tviz__seg" role="group" aria-label="Hidden ground truth">
+              <button type="button" data-truth="noise" class="is-active">Just variance</button>
+              <button type="button" data-truth="shift">Genuine shift</button>
+            </div>
+            <button class="pviz__btn" id="dviz-resample" type="button">Resample</button>
+            <span class="dviz__verdict">verdict<b id="dviz-verdict">·</b></span>
+            <span class="dviz__tally" id="dviz-tally"></span>
+          </div>
+          <p class="dviz__note">
+            Both scenarios dip at the end and look identical trade by trade. The CUSUM detector
+            only fires when the drop is large and sustained relative to the bootstrapped no-change
+            band, so pure variance is held and a genuine shift is flagged. Resample to watch the
+            false-alarm and detection rates.
+          </p>
+        </div>
       </li>
 
     </ol>
@@ -185,5 +211,6 @@
   <script src="../../js/case.js" defer></script>
   <script src="../../js/scene-terminal.js" defer></script>
   <script src="../../js/scene-pipeline.js" defer></script>
+  <script src="../../js/scene-detector.js" defer></script>
 </body>
 </html>
