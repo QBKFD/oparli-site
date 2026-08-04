@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Self-Evolving Multi-Agentic AI Trading System · OPARLI</title>
+  <meta name="description" content="How a multi-agent XAUUSD trading system works: role separation, a cost-gated LLM pipeline, one codebase for live and backtest, and a two-layer self-evolving loop with a human veto." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="stylesheet" href="../../css/case.css" />
+</head>
+<body>
+
+  <header class="nav is-scrolled" id="nav">
+    <div class="nav__inner">
+      <a href="../../index.html" class="nav__name">OPARLI</a>
+      <nav class="nav__links" aria-label="Primary">
+        <a href="../../index.html#projects">Projects</a>
+        <span class="nav__sep" aria-hidden="true">·</span>
+        <a href="../../index.html#research">Research</a>
+        <span class="nav__sep" aria-hidden="true">·</span>
+        <a href="../../index.html#about">About</a>
+        <span class="nav__sep" aria-hidden="true">·</span>
+        <a href="../../index.html#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="case">
+    <a href="../../index.html#projects" class="case__back">← Back to projects</a>
+
+    <header class="case__head">
+      <p class="eyebrow eyebrow--accent">Project</p>
+      <h1 class="case__title">Self-Evolving Multi-Agentic AI Trading System</h1>
+      <p class="case__standfirst">
+        A multi-agent system that trades spot gold, runs the exact same code live and in
+        backtest, gates its expensive AI behind a cheap filter, and proposes evidence-backed
+        changes to its own agents that I have to approve.
+      </p>
+      <p class="case__meta mono">
+        Python · FastAPI · Claude Vision + Text · IBKR · PostgreSQL · Vue 3
+        &nbsp;·&nbsp; <a href="#">Repo →</a>
+      </p>
+    </header>
+
+    <ol class="path">
+
+      <li class="stage" id="bet">
+        <span class="stage__node" aria-hidden="true"></span>
+        <p class="stage__label">01 · The bet</p>
+        <h2 class="stage__title">Separate deciding from analysing</h2>
+        <p class="stage__body">
+          The core rule of the system is that no single agent both analyses the market and
+          pulls the trigger. Each analyst only offers an opinion. A meta-agent weighs those
+          opinions into a decision, a risk manager validates it, an execution agent places
+          it, and a position manager owns its life after that. Splitting the roles keeps
+          every step auditable and stops one overconfident model from running the whole show.
+        </p>
+      </li>
+
+      <li class="stage" id="pipeline">
+        <span class="stage__node" aria-hidden="true"></span>
+        <p class="stage__label">02 · The pipeline</p>
+        <h2 class="stage__title">Specialists in, one weighted vote out</h2>
+        <p class="stage__body">
+          A scanner watches XAUUSD and, when something interesting happens, fans the moment
+          out to three analysts: a rule-based technical agent (RSI, MACD, Bollinger Bands,
+          moving averages), a visual agent that reads a rendered chart image with a vision
+          model, and a sentiment agent for macro context. The meta-agent tallies their
+          signals as a weighted, governed vote, resolves conflicts against consensus and
+          confidence thresholds, and only then emits a trade signal to the risk manager.
+        </p>
+
+        <div class="tviz" id="tviz" role="group" aria-label="Interactive: the agents reasoning over a live chart">
+          <div class="tviz__stage">
+            <div class="tviz__chart"><canvas class="tviz__canvas" aria-hidden="true"></canvas></div>
+            <div class="tviz__panel">
+              <div class="tcard" data-step="scan"><div class="tcard__head"><span>Scanner</span><span class="tcard__badge">scan</span></div><div class="tcard__text"></div></div>
+              <div class="tcard" data-step="tech"><div class="tcard__head"><span>Technical</span><span class="tcard__badge"></span></div><div class="tcard__text"></div></div>
+              <div class="tcard" data-step="vis"><div class="tcard__head"><span>Visual</span><span class="tcard__badge"></span></div><div class="tcard__text"></div></div>
+              <div class="tcard" data-step="sent"><div class="tcard__head"><span>Sentiment</span><span class="tcard__badge"></span></div><div class="tcard__text"></div></div>
+              <div class="tcard tcard--meta" data-step="meta"><div class="tcard__head"><span>Meta decision</span><span class="tcard__badge"></span></div><div class="tcard__text"></div></div>
+            </div>
+          </div>
+          <div class="tviz__controls">
+            <div class="tviz__seg" role="group" aria-label="Scenario">
+              <button type="button" data-dir="bull" class="is-active">Bull</button>
+              <button type="button" data-dir="bear">Bear</button>
+            </div>
+            <button class="pviz__btn" id="tviz-replay" type="button">Replay</button>
+          </div>
+          <p class="tviz__note">
+            The scanner catches a moment on the chart, three analysts reason over it (the
+            indicators, the candle itself, and the news), and the meta-agent turns their votes
+            into a decision. Switch the scenario or replay.
+          </p>
+        </div>
+
+        <div class="pviz" id="pviz" role="group" aria-label="Interactive: the agent pipeline reaching a decision">
+          <canvas class="pviz__canvas" aria-hidden="true"></canvas>
+          <div class="pviz__controls">
+            <span class="pviz__decision">meta decision<b id="pviz-decision">·</b></span>
+            <span style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="pviz__btn" type="button" id="pviz-run">Run a scan</button>
+              <button class="pviz__btn" type="button" id="pviz-month">Run a month</button>
+            </span>
+          </div>
+          <p class="pviz__note" id="pviz-note">
+            Click any analyst to flip its vote and watch the meta-agent re-tally (edge thickness is
+            its weight). "Run a month" fires the self-evolving loop: outcomes flow back to nudge the
+            weights, and a proposed instruction change routes through your approval before it lands.
+          </p>
+        </div>
+      </li>
+
+      <li class="stage" id="cost">
+        <span class="stage__node" aria-hidden="true"></span>
+        <p class="stage__label">03 · Cost-aware AI</p>
+        <h2 class="stage__title">Keep the expensive thinking rare</h2>
+        <p class="stage__body">
+          Vision and language-model calls cost real money, so the scanner filters in two
+          stages. Stage one is pure Python and runs in under 100 milliseconds: it rejects
+          anything that is not at a key level, on a volume event, or above a confluence
+          floor. Only when stage one passes does stage two wake the visual, sentiment, and
+          meta agents at full LLM cost. The cheap gate reacts to genuine structure while
+          keeping the costly path infrequent.
+        </p>
+      </li>
+
+      <li class="stage" id="backtest">
+        <span class="stage__node" aria-hidden="true"></span>
+        <p class="stage__label">04 · One codebase, two modes</p>
+        <h2 class="stage__title">The same agents trade live and replay the past</h2>
+        <p class="stage__body">
+          The hard part of a trading system is trusting that a backtest reflects what will
+          actually happen. I handle it by never letting agents read the wall clock or the
+          live database directly. They receive an injected clock and data provider, so a live
+          clock and Postgres in production become a simulated clock and a bounded historical
+          feed in a backtest. The historical provider is pinned to an as-of timestamp and
+          binary-searches its frame, which makes look-ahead impossible by construction. The
+          backtest harness just swaps those two objects and replays the exact same agent code.
+        </p>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="stat__num"><span data-countup="990000" data-decimals="0">0</span></div>
+            <div class="stat__label">1-minute XAUUSD bars</div>
+          </div>
+          <div class="stat">
+            <div class="stat__num"><span data-countup="688" data-decimals="0">0</span></div>
+            <div class="stat__label">trading days, 2021 to 2026</div>
+          </div>
+          <div class="stat">
+            <div class="stat__num">0</div>
+            <div class="stat__label">look-ahead, by construction</div>
+          </div>
+        </div>
+      </li>
+
+      <li class="stage" id="evolve">
+        <span class="stage__node" aria-hidden="true"></span>
+        <p class="stage__label">05 · Self-evolving, with a veto</p>
+        <h2 class="stage__title">Two layers of learning, and a human in the loop</h2>
+        <p class="stage__body">
+          The meta-agent runs in four modes. Before a trade it coordinates the vote, mid-trade
+          it manages the position, after a trade it updates each analyst's weight from realised
+          performance, and once a month it does something bigger.
+        </p>
+        <p class="stage__body">
+          In that monthly evolution pass it proposes symbolic changes to its own agents'
+          instructions, add, modify, or remove, and attaches statistical evidence to each:
+          sample size, a p-value, and the win-rate before versus after a backtest. Nothing
+          deploys automatically. Every proposal waits for my approval. The system can suggest
+          how to improve itself, but it cannot silently rewrite its own rules.
+        </p>
+      </li>
+
+    </ol>
+  </main>
+
+  <script src="../../js/case.js" defer></script>
+  <script src="../../js/scene-terminal.js" defer></script>
+  <script src="../../js/scene-pipeline.js" defer></script>
+</body>
+</html>
