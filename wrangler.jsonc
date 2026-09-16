@@ -1,8 +1,13 @@
 {
-  // Static-asset-only Worker: serves the files in this repo, no server code.
+  // Worker that serves the static site AND a server-side signed-URL redirect at
+  // /r/<token>. With run_worker_first left at its default (false), static assets are
+  // served directly and the Worker is only invoked for paths that do not match a file
+  // (i.e. /r/* and genuine 404s) — so every existing page is unaffected by the Worker.
   "name": "oparli-site",
+  "main": "worker.js",
   "compatibility_date": "2025-01-01",
   "assets": {
-    "directory": "."
+    "directory": ".",
+    "binding": "ASSETS"
   }
 }

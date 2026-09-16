@@ -1,0 +1,7 @@
+# Template for local `wrangler dev`. Copy to `.dev.vars` (gitignored) and fill in
+# real values. NEVER commit `.dev.vars` or put real secrets in this example file.
+REFERENCE_LINK_TOKEN="paste-a-long-random-string-here"
+SUPABASE_URL="https://YOUR-PROJECT-REF.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="paste-service-role-key-here"
+SUPABASE_BUCKET="private-docs"
+REFERENCE_DOC_PATH="reference-letter.pdf"

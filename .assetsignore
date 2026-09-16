@@ -3,3 +3,6 @@
 .assetsignore
 wrangler.jsonc
 README.md
+worker.js
+.dev.vars
+.dev.vars.example

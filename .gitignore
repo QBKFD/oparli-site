@@ -7,3 +7,9 @@
 
 # Logs / misc
 *.log
+
+# Confidential documents — these live in Supabase Storage, NEVER in git
+*.pdf
+
+# Local Worker secrets for `wrangler dev` (never commit real values)
+.dev.vars
