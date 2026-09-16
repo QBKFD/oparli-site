@@ -9,5 +9,15 @@
   "assets": {
     "directory": ".",
     "binding": "ASSETS"
+  },
+  // Non-secret config lives in code so it survives every deploy. NOT secret: the URL,
+  // bucket name, and filename reveal nothing without the service key (a private-bucket
+  // object is inaccessible without a signed URL). The two SECRETS
+  // (REFERENCE_LINK_TOKEN, SUPABASE_SERVICE_ROLE_KEY) are set as encrypted Secrets in
+  // the Cloudflare dashboard and are never committed here.
+  "vars": {
+    "SUPABASE_URL": "https://pohygvyjniougpejfrun.supabase.co",
+    "SUPABASE_BUCKET": "ref_letter",
+    "REFERENCE_DOC_PATH": "reference-letter.pdf"
   }
 }
